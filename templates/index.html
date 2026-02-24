@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Giznos AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <div id="chatbox"></div>
+        <input type="text" id="userInput" placeholder="Type your message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        function sendMessage() {
+            let input = document.getElementById("userInput").value;
+            if (!input) return;
+
+            let chatbox = document.getElementById("chatbox");
+            chatbox.innerHTML += `<div class="user">You: ${input}</div>`;
+
+            fetch("/ask", {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                body: `message=${encodeURIComponent(input)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                chatbox.innerHTML += `<div class="giznos">Giznos: ${data.response}</div>`;
+                document.getElementById("userInput").value = "";
+                chatbox.scrollTop = chatbox.scrollHeight;
+            });
+        }
+    </script>
+</body>
+</html>
