@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 import datetime
 import os
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
@@ -15,7 +19,8 @@ def giznos_response(message):
     elif any(op in message for op in ["+", "-", "*", "/"]):
         try:
             return f"The answer is {eval(message)}"
-        except:
+        except Exception as e:
+            logging.error(f"Math error: {e}")
             return "Hmm, I couldn't calculate that."
     elif "how are you" in message:
         return "I'm just code, but I'm doing great!"
@@ -24,14 +29,23 @@ def giznos_response(message):
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    try:
+        return render_template("index.html")
+    except Exception as e:
+        logging.error(f"Template error: {e}")
+        return "Error loading page."
 
 @app.route("/ask", methods=["POST"])
 def ask():
-    user_message = request.form["message"]
-    response = giznos_response(user_message)
-    return jsonify({"response": response})
+    try:
+        user_message = request.form.get("message", "")
+        response = giznos_response(user_message)
+        return jsonify({"response": response})
+    except Exception as e:
+        logging.error(f"Ask error: {e}")
+        return jsonify({"response": "Oops, something went wrong."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
+    logging.info(f"Starting Giznos on port {port}")
     app.run(host="0.0.0.0", port=port)
